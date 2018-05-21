@@ -11,9 +11,7 @@ fi
 
 echo ""
 echo "Toradex targets are:"
-echo "    angstrom-lxde-image"
-echo "    console-tdx-image"
-echo "    angstrom-qt-x11-image"
+echo "    console-isoblue-image"
 
 if [ $FIRST_TIME -eq 1 ]; then
 	mkdir -p conf
