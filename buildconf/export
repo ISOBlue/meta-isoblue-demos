@@ -15,7 +15,7 @@ echo "    console-isoblue-image"
 
 if [ $FIRST_TIME -eq 1 ]; then
 	mkdir -p conf
-	cp ../layers/meta-toradex-demos/buildconf/*.conf conf/
+	cp ../layers/meta-isoblue-demos/buildconf/*.conf conf/
 
 	echo ""
 	$ECHO -e "\033[1mA sample conf/local.conf file has been created"
