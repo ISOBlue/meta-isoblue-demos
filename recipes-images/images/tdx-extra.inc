@@ -1,4 +1,4 @@
-#additional packages to include in our ISOBlue images
+#additional packages to include in our Toradex images
 
 # Copy Licenses to image /usr/share/common-licenses, on vybrid for flash size reasons only the manifest
 COPY_LIC_MANIFEST ?= "1"
@@ -6,14 +6,14 @@ COPY_LIC_MANIFEST ?= "1"
 COPY_LIC_DIRS ?= "0"
 COPY_LIC_DIRS_colibri-vf = "0"
 
-#build some ipk which are needed together with CAN, but do not yet install them
-DEPENDS += "canutils libsocketcan iproute2"
+add_rootfs_version () {
+    echo -n "${IMAGE_NAME} ${PV}" >> ${IMAGE_ROOTFS}/etc/issue
+    echo " ${TDX_VERDATE}" | sed 's/-//' >>${IMAGE_ROOTFS}/etc/issue
+    echo "" >> ${IMAGE_ROOTFS}/etc/issue
+}
 
-#the following builds cross gdb and gdbserver
-DEPENDS += "gdb-cross-${TARGET_ARCH}"
-
-#create the file /etc/timestamp
-IMAGE_PREPROCESS_COMMAND = "rootfs_update_timestamp"
+# add the rootfs version to the welcome banner
+ROOTFS_POSTPROCESS_COMMAND += " add_rootfs_version;"
 
 IMAGE_INSTALL_append_tegra = " \
     u-boot-toradex-fw-utils \
@@ -24,7 +24,6 @@ IMAGE_INSTALL_append_tegra = " \
     usb-rndis-systemd \
     hdmi-hotplug \
     \
-    curl \
     file \
     aspell \
     kernel-modules \
@@ -41,8 +40,6 @@ IMAGE_INSTALL_append_tegra3 = " \
 
 IMAGE_INSTALL_append_tegra124 = " \
     aspell \
-    canutils \
-    curl \
     e2fsprogs \
     e2fsprogs-mke2fs \
     e2fsprogs-tune2fs \
@@ -60,8 +57,6 @@ IMAGE_INSTALL_append_tegra124 = " \
 "
 IMAGE_INSTALL_append_tegra124m = " \
     aspell \
-    canutils \
-    curl \
     e2fsprogs \
     e2fsprogs-mke2fs \
     e2fsprogs-tune2fs \
@@ -80,8 +75,6 @@ IMAGE_INSTALL_append_apalis-t30 = " \
     linuxptp \
     pciutils \
     ptpd \
-    iproute2 \
-    canutils \
     lvds-ctrl \
 "
 
@@ -91,16 +84,15 @@ IMAGE_INSTALL_append_colibri-t20 = " \
 
 #note that the kernel-modules meta package gets installed from
 #meta-fsl-arm/conf/machine/include/imx-base.inc
-IMAGE_INSTALL_append_mx6 = " \
+IMAGE_INSTALL-MX6QDL = " \
+    bmode-usb \
     libusbgx \
+    libusbgx-examples \
     linuxptp \
     gpio-export \
-    curl \
     file \
     aspell \
     ptpd \
-    iproute2 \
-    canutils \
     fs-init \
     e2fsprogs \
     e2fsprogs-mke2fs \
@@ -108,12 +100,23 @@ IMAGE_INSTALL_append_mx6 = " \
     e2fsprogs-tune2fs \
     mimetypes \
 "
+IMAGE_INSTALL_append_mx6q = "${IMAGE_INSTALL-MX6QDL}"
+IMAGE_INSTALL_append_mx6dl = "${IMAGE_INSTALL-MX6QDL}"
 
 IMAGE_INSTALL_append_apalis-imx6 = " \
     u-boot-toradex-fsl-fw-utils \
 "
 IMAGE_INSTALL_append_colibri-imx6 = " \
     u-boot-toradex-fsl-fw-utils \
+"
+
+IMAGE_INSTALL_append_mx6ull = " \
+    bmode-usb \
+    libusbgx \
+    libusbgx-examples \
+    linuxptp \
+    ptpd \
+    mtd-utils-ubifs \
 "
 
 #note that the kernel-modules meta package gets installed from
@@ -125,9 +128,8 @@ IMAGE_INSTALL_append_apalis-imx6 = " \
 IMAGE_INSTALL_append_vf = " \
     linuxptp \
     libusbgx \
+    libusbgx-examples \
     ptpd \
-    iproute2 \
-    canutils \
     mtd-utils-ubifs \
     kernel-modules \
     usb-suspend-resume \
@@ -140,23 +142,30 @@ IMAGE_INSTALL_append_colibri-vf = " \
 IMAGE_INSTALL_append_mx7 = " \
     linuxptp \
     libusbgx \
-    curl \
+    libusbgx-examples \
     file \
     aspell \
     ptpd \
-    iproute2 \
-    canutils \
-    mtd-utils-ubifs \
+"
+
+IMAGE_INSTALL_append_colibri-imx7-emmc = " \
+    u-boot-toradex-fsl-fw-utils \
 "
 
 IMAGE_INSTALL_append_colibri-imx7 = " \
     u-boot-toradex-fsl-fw-utils \
+    mtd-utils-ubifs \
+"
+
+IMAGE_INSTALL_append_colibri-imx6ull = " \
+    u-boot-toradex-fsl-fw-utils \
+    mtd-utils-ubifs \
 "
 
 IMAGE_INSTALL += " \
+    packagegroup-dotnet-deps \
+    \
     crda \
-    linux-firmware-ralink \
-    linux-firmware-rtl8192cu \
     \
     alsa-utils \
     alsa-utils-aplay \
@@ -164,7 +173,9 @@ IMAGE_INSTALL += " \
     \
     sqlite3 \
     \
+    ${BACKPORTS_WIFI} \
     curl \
+    canutils \
     nfs-utils-client \
     openssh-scp \
     openssh-sftp \
@@ -183,7 +194,6 @@ IMAGE_INSTALL += " \
     devmem2 \
     evtest \
     hdparm \
-    iperf \
     iperf3 \
     i2c-tools \
     memtester \
@@ -196,4 +206,44 @@ IMAGE_INSTALL += " \
     ethtool \
     \
     tdx-oak-sensors \
+"
+
+#Backports
+
+BACKPORTS_WIFI = " \
+    backports \
+    linux-firmware-ath10k    \
+    linux-firmware-sd8686    \
+    linux-firmware-sd8688    \
+    linux-firmware-sd8787    \
+    linux-firmware-sd8797    \
+    linux-firmware-sd8887    \
+    linux-firmware-ralink    \
+    linux-firmware-rtl8192cu \
+    linux-firmware-rtl8188eu \
+    hostapd \
+"
+BACKPORTS_WIFI_EXTRA = " \
+    linux-firmware-ath9k     \
+    linux-firmware-iwlwifi   \
+"
+
+IMAGE_INSTALL_append_apalis-tk1 = " \
+     ${BACKPORTS_WIFI_EXTRA} \
+"
+
+IMAGE_INSTALL_append_apalis-tk1-mainline = " \
+     ${BACKPORTS_WIFI_EXTRA} \
+"
+
+IMAGE_INSTALL_remove_apalis-tk1-mainline = " \
+    backports \
+"
+
+IMAGE_INSTALL_append_apalis-t30 = " \
+    ${BACKPORTS_WIFI_EXTRA} \
+"
+
+IMAGE_INSTALL_append_apalis-imx6 = " \
+    ${BACKPORTS_WIFI_EXTRA} \
 "

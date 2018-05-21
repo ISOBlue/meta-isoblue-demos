@@ -10,12 +10,18 @@ fi
 . ./oe-init-build-env ${BUILDDIR}
 
 echo ""
-echo "ISOBlue targets are:"
-echo "    console-isoblue-image"
+echo "Toradex targets are:"
+echo "    angstrom-lxde-image"
+echo "    console-tdx-image"
+echo "    angstrom-qt-x11-image"
 
 if [ $FIRST_TIME -eq 1 ]; then
 	mkdir -p conf
-	cp ../layers/meta-isoblue-demos/buildconf/*.conf conf/
+	cp ../layers/meta-toradex-demos/buildconf/*.conf conf/
 
 	echo ""
+	$ECHO -e "\033[1mA sample conf/local.conf file has been created"
+	$ECHO -e "Check and edit the file to adapt to your local needs\033[0m"
+	echo "The following likely need your attention:"
+	echo "BB_NUMBER_THREADS, PARALLEL_MAKE, DL_DIR"
 fi
