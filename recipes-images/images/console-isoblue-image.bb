@@ -1,8 +1,7 @@
-SUMMARY = "ISOBlue Embedded Linux Console Demo"
+SUMMARY = "Toradex Embedded Linux Console Demo"
+SUMMARY_append_apalis-tk1-mainline = " (Mainline)"
 
 LICENSE = "MIT"
-
-PV = "${TDX_VER_INT}"
 
 #start of the resulting deployable tarball name
 IMAGE_NAME = "Isoblue2_${MACHINE}_image"
@@ -17,9 +16,9 @@ IMAGE_LINGUAS = "en-us"
 #ROOTFS_POSTPROCESS_COMMAND += 'install_linguas; '
 
 DISTRO_UPDATE_ALTERNATIVES ??= ""
-ROOTFS_PKGMANAGE_PKGS ?= '${@base_conditional("ONLINE_PACKAGE_MANAGEMENT", "none", "", "${ROOTFS_PKGMANAGE} ${DISTRO_UPDATE_ALTERNATIVES}", d)}'
+ROOTFS_PKGMANAGE_PKGS ?= '${@oe.utils.conditional("ONLINE_PACKAGE_MANAGEMENT", "none", "", "${ROOTFS_PKGMANAGE} ${DISTRO_UPDATE_ALTERNATIVES}", d)}'
 
-CONMANPKGS ?= "connman connman-systemd connman-plugin-loopback connman-plugin-ethernet connman-plugin-wifi connman-client"
+CONMANPKGS ?= "connman connman-client"
 CONMANPKGS_libc-uclibc = ""
 
 #don't install some id databases
@@ -35,6 +34,7 @@ IMAGE_INSTALL += " \
     angstrom-packagegroup-boot \
     packagegroup-basic \
     udev-extra-rules \
+    ${CONMANPKGS} \
     ${ROOTFS_PKGMANAGE_PKGS} \
     timestamp-service \
     packagegroup-base-extended \
@@ -68,4 +68,4 @@ IMAGE_INIT_MANAGER  = "systemd"
 IMAGE_INITSCRIPTS   = " "
 IMAGE_LOGIN_MANAGER = "busybox shadow"
 
-inherit image
+inherit core-image
