@@ -217,7 +217,6 @@ IMAGE_INSTALL += " \
 #Backports
 
 BACKPORTS_WIFI = " \
-    backports \
     linux-firmware-ath10k    \
     linux-firmware-sd8686    \
     linux-firmware-sd8688    \
@@ -235,26 +234,26 @@ BACKPORTS_WIFI_EXTRA = " \
     linux-firmware-iwlwifi   \
 "
 
-IMAGE_INSTALL_append_apalis-tk1 = " \
-     ${BACKPORTS_WIFI_EXTRA} \
-"
-
-IMAGE_INSTALL_append_apalis-tk1-mainline = " \
-     ${BACKPORTS_WIFI_EXTRA} \
-"
-
-IMAGE_INSTALL_remove_apalis-tk1-mainline = " \
-    backports \
-"
-
-IMAGE_INSTALL_remove_colibri-t20 = " \
-    linux-firmware-ath10k \
-"
-
-IMAGE_INSTALL_append_apalis-t30 = " \
-    ${BACKPORTS_WIFI_EXTRA} \
-"
-
-IMAGE_INSTALL_append_apalis-imx6 = " \
-    ${BACKPORTS_WIFI_EXTRA} \
-"
+#IMAGE_INSTALL_append_apalis-tk1 = " \
+#     ${BACKPORTS_WIFI_EXTRA} \
+#"
+#
+#IMAGE_INSTALL_append_apalis-tk1-mainline = " \
+#     ${BACKPORTS_WIFI_EXTRA} \
+#"
+#
+#IMAGE_INSTALL_remove_apalis-tk1-mainline = " \
+#    backports \
+#"
+#
+#IMAGE_INSTALL_remove_colibri-t20 = " \
+#    linux-firmware-ath10k \
+#"
+#
+#IMAGE_INSTALL_append_apalis-t30 = " \
+#    ${BACKPORTS_WIFI_EXTRA} \
+#"
+#
+#IMAGE_INSTALL_append_apalis-imx6 = " \
+#    ${BACKPORTS_WIFI_EXTRA} \
+#"

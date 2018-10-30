@@ -46,12 +46,11 @@ IMAGE_INSTALL += " \
     vim \
     chrony \
     pps-tools \
-    modemmanager \
-    networkmanager \
+    ofono \
+    ofono-tests \
     \
     libedit \
     libmbim \
-    libqmi \
     librdkafka \
     avro-c \
     python-kafka \
