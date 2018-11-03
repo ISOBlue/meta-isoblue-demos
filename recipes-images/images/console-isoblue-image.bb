@@ -34,7 +34,6 @@ IMAGE_INSTALL += " \
     angstrom-packagegroup-boot \
     packagegroup-basic \
     udev-extra-rules \
-    ${CONMANPKGS} \
     ${ROOTFS_PKGMANAGE_PKGS} \
     timestamp-service \
     packagegroup-base-extended \
@@ -46,9 +45,10 @@ IMAGE_INSTALL += " \
     vim \
     chrony \
     pps-tools \
-    ofono \
-    ofono-tests \
+    modemmanager \
+    networkmanager \
     \
+    libqmi \
     libedit \
     libmbim \
     librdkafka \
