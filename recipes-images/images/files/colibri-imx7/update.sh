@@ -67,7 +67,7 @@ Usage()
 }
 
 # initialise options
-KERNEL_DEVICETREE="imx7s-colibri-eval-v3.dtb imx7d-colibri-eval-v3.dtb"
+KERNEL_DEVICETREE="imx7s-colibri-eval-v3.dtb imx7d-colibri-eval-v3.dtb imx7s-colibri-aster.dtb imx7d-colibri-aster.dtb"
 KERNEL_IMAGETYPE="zImage"
 MODTYPE_DETECT=0
 
@@ -149,7 +149,7 @@ BINARIES=${MODTYPE}_bin
 if [ "$UBOOT_RECOVERY" -eq 1 ] ; then
 	echo "Put the module in recovery mode and press [ENTER]..."
 	read RESULT
-	sudo ${LOCPATH}/imx_usb ${BINARIES}/u-boot.imx
+	sudo ${LOCPATH}/imx_usb ${BINARIES}/u-boot-nand.imx
 	exit
 fi
 
@@ -188,7 +188,8 @@ echo "UBI image of root file system generated, copying data to target folder..."
 sudo touch ${BINARIES}/versions.txt
 sudo chmod ugo+w ${BINARIES}/versions.txt
 echo "Component Versions" > ${BINARIES}/versions.txt
-basename "`readlink -e ${BINARIES}/u-boot.imx`" >> ${BINARIES}/versions.txt
+basename "`readlink -e ${BINARIES}/u-boot-nand.imx`" >> ${BINARIES}/versions.txt
+basename "`readlink -e ${BINARIES}/${KERNEL_IMAGETYPE}`" >> ${BINARIES}/versions.txt
 ROOTFSVERSION=`grep MX7 rootfs/etc/issue || echo "Version Unknown"`
 echo "Rootfs ${ROOTFSVERSION}" >> ${BINARIES}/versions.txt
 

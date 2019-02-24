@@ -71,7 +71,7 @@ EMMC_PARTS="mbr.bin boot.vfat"
 # no devicetree by default
 KERNEL_DEVICETREE=""
 KERNEL_IMAGETYPE="uImage"
-MIN_PARTITION_FREE_SIZE=100
+MIN_PARTITION_FREE_SIZE=300
 MODTYPE_DETECT=0
 
 # NAND parameters
@@ -192,6 +192,7 @@ esac
 
 case "$MODTYPE" in
 	"apalis-t30")
+                # note: requires changing apalis-t30_bin/apalis_t30.img.cfg as well
 #		BCT=apalis_t30_12MHz_MT41K512M8RH-125_533MHz.bct
 		BCT=Apalis_T30_2GB_800Mhz.bct
 		CBOOT_IMAGE=apalis_t30.img
@@ -210,8 +211,8 @@ case "$MODTYPE" in
 		CBOOT_IMAGE_TARGET=tegra124
 		# assumed minimal eMMC size [in sectors of 512]
 		EMMC_SIZE=$(expr 1024 \* 15020 \* 2)
-		IMAGEFILE=root.ext3
-		KERNEL_DEVICETREE="tegra124-apalis-eval.dtb"
+		IMAGEFILE=root.ext4
+		KERNEL_DEVICETREE="tegra124-apalis-eval.dtb tegra124-apalis-v1.2-eval.dtb"
 		LOCPATH="tegra-uboot-flasher"
 		OUT_DIR="$OUT_DIR/apalis-tk1"
 		U_BOOT_BINARY=u-boot-dtb-tegra.bin
@@ -230,6 +231,7 @@ case "$MODTYPE" in
 		;;
 	"colibri-t30")
 		# with new kernel, boot with 400MHz, then switch between 400 & 800
+		# note: requires changing colibri-t30_bin/colibri_t30.img.cfg as well
 		BCT=colibri_t30_12MHz_NT5CC256M16CP-DI_400MHz.bct
 #		BCT=colibri_t30_12MHz_NT5CC256M16CP-DI_533MHz.bct
 		CBOOT_IMAGE=colibri_t30.img
@@ -298,6 +300,7 @@ MCOPY=`command -v mcopy` || { echo >&2 "Program mcopy not available.  Aborting."
 PARTED=`command -v parted` || PARTED=`sudo -s command -v parted` || { echo >&2 "Program parted not available.  Aborting."; exit 1; }
 MKFSVFAT=`command -v mkfs.fat` || MKFSVFAT=`sudo -s command -v mkfs.fat` || { echo >&2 "Program mkfs.fat not available.  Aborting."; exit 1; }
 MKFSEXT3=`command -v mkfs.ext3` || MKFSEXT3=`sudo -s command -v mkfs.ext3` || { echo >&2 "Program mkfs.ext3 not available.  Aborting."; exit 1; }
+MKFSEXT4=`command -v mkfs.ext4` || MKFSEXT4=`sudo -s command -v mkfs.ext4` || { echo >&2 "Program mkfs.ext4 not available.  Aborting."; exit 1; }
 dd --help >/dev/null 2>&1 || { echo >&2 "Program dd not available.  Aborting."; exit 1; }
 
 CBOOT_CNT=`tegra-uboot-flasher/cbootimage -h | grep -c outputimage || true`
@@ -392,7 +395,11 @@ else
 		${PARTED} -a none -s ${BINARIES}/mbr.bin unit s mkpart primary fat32 ${BOOT_START} $(expr ${ROOTFS_START} - 1 )
 		# the partition spans to the end of the disk, even though the fs size will be smaller
 		# on the target the fs is then grown to the full size
-		${PARTED} -a none -s ${BINARIES}/mbr.bin unit s mkpart primary ext2 ${ROOTFS_START} $(expr ${EMMC_SIZE} \- ${ROOTFS_START} \- 1)
+		if [ "${IMAGEFILE}" = "root.ext3" ] ; then
+			${PARTED} -a none -s ${BINARIES}/mbr.bin unit s mkpart primary ext3 ${ROOTFS_START} $(expr ${EMMC_SIZE} \- ${ROOTFS_START} \- 1)
+		else
+			${PARTED} -a none -s ${BINARIES}/mbr.bin unit s mkpart primary ext4 ${ROOTFS_START} $(expr ${EMMC_SIZE} \- ${ROOTFS_START} \- 1)
+		fi
 		${PARTED} -s ${BINARIES}/mbr.bin unit s print 
 		# get the size of the VFAT partition
 		BOOT_BLOCKS=$(LC_ALL=C ${PARTED} -s ${BINARIES}/mbr.bin unit b print \
@@ -413,7 +420,7 @@ else
 		COPIED=false
 		if test -n "${KERNEL_DEVICETREE}"; then
 			for DTS_FILE in ${KERNEL_DEVICETREE}; do
-				DTS_BASE_NAME=`basename ${DTS_FILE} | awk -F "." '{print $1}'`
+				DTS_BASE_NAME=`basename ${DTS_FILE} .dtb`
 				if [ -e "${BINARIES}/${KERNEL_IMAGETYPE}-${DTS_BASE_NAME}.dtb" ]; then
 					kernel_bin="`readlink ${BINARIES}/${KERNEL_IMAGETYPE}`"
 					kernel_bin_for_dtb="`readlink ${BINARIES}/${KERNEL_IMAGETYPE}-${DTS_BASE_NAME}.dtb | sed "s,$DTS_BASE_NAME,${MODTYPE},g;s,\.dtb$,.bin,g"`"
@@ -439,7 +446,11 @@ else
 				'{rootfs_size=$1+f*512;rootfs_size=int(rootfs_size/1024/985); print (rootfs_size+min) }'`
 
 		rm -f ${BINARIES}/${IMAGEFILE}
-		sudo $LOCPATH/genext3fs.sh -d rootfs -b ${EXT_SIZE} ${BINARIES}/${IMAGEFILE} || exit 1
+		if [ "${IMAGEFILE}" = "root.ext3" ] ; then
+			sudo $LOCPATH/genext3fs.sh -d rootfs -b ${EXT_SIZE} ${BINARIES}/${IMAGEFILE} || exit 1
+		else
+			sudo $LOCPATH/genext4fs.sh -d rootfs -b ${EXT_SIZE} ${BINARIES}/${IMAGEFILE} || exit 1
+		fi
 	fi
 fi
 
@@ -451,9 +462,9 @@ sudo cp fwd_blk.img "$OUT_DIR/../flash_blk.img"
 sudo cp fwd_eth.img "$OUT_DIR/../flash_eth.img"
 sudo cp fwd_mmc.img "$OUT_DIR/../flash_mmc.img"
 
-if [ "${IMAGEFILE}" = "root.ext3" ] ; then
+if [ "${IMAGEFILE}" = "root.ext3" ] || [ "${IMAGEFILE}" = "root.ext4" ] ; then
 	if [ "$SPLIT" -ge 1 ] ; then
-		sudo split -a 3 -b `expr 64 \* 1024 \* 1024` --numeric-suffixes=100 ${IMAGEFILE} "$OUT_DIR/root.ext3-"
+		sudo split -a 3 -b `expr 64 \* 1024 \* 1024` --numeric-suffixes=100 ${IMAGEFILE} "${OUT_DIR}/${IMAGEFILE}-"
 	fi
 else
 	sudo cp ${IMAGEFILE}* "$OUT_DIR"

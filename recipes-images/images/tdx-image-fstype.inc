@@ -2,25 +2,30 @@
 
 include conf/tdx_version.conf
 
+PV = "${TDX_VER_EXT_MIN}"
 BURNFLASH := "${THISDIR}/files/${MACHINE}"
-IMAGE_DIR = "${IMAGE_NAME}_${PV}"
+IMAGE_DIR = "${IMAGE_NAME}_${TDX_VER_INT}"
 IMAGE_ROOTFS = "${WORKDIR}/${IMAGE_DIR}/rootfs"
 
-U_BOOT_EXT = "bin"
-U_BOOT_EXT_mx6 = "imx"
-U_BOOT_EXT_mx7 = "imx"
-U_BOOT_EXT_vf = "imx"
-U_BOOT_SYMLINK = "u-boot-${MACHINE}.${U_BOOT_EXT}"
-U_BOOT_SYMLINK_tegra = "u-boot-dtb-tegra-${MACHINE}.${U_BOOT_EXT}"
-U_BOOT_SYMLINK_tegra124 = "u-boot-dtb-tegra-${MACHINE}.${U_BOOT_EXT}"
-U_BOOT_SYMLINK_tegra124m = "u-boot-dtb-tegra-${MACHINE}.${U_BOOT_EXT}"
-U_BOOT_BINARY = "u-boot.${U_BOOT_EXT}"
-U_BOOT_BINARY_tegra = "u-boot-dtb-tegra.${U_BOOT_EXT}"
-U_BOOT_BINARY_tegra124 = "u-boot-dtb-tegra.${U_BOOT_EXT}"
-U_BOOT_BINARY_tegra124m = "u-boot-dtb-tegra.${U_BOOT_EXT}"
+UBOOT_EXT = "bin"
+UBOOT_EXT_mx6 = "imx"
+UBOOT_EXT_mx7 = "imx"
+UBOOT_EXT_vf = "imx"
+UBOOT_SYMLINK = "u-boot-${MACHINE}.${UBOOT_EXT}"
+UBOOT_SYMLINK_tegra = "u-boot-dtb-tegra-${MACHINE}.${UBOOT_EXT}"
+UBOOT_SYMLINK_tegra124 = "u-boot-dtb-tegra-${MACHINE}.${UBOOT_EXT}"
+UBOOT_SYMLINK_tegra124m = "u-boot-dtb-tegra-${MACHINE}.${UBOOT_EXT}"
+UBOOT_BINARY = "u-boot.${UBOOT_EXT}"
+UBOOT_BINARY_colibri-imx7 = "u-boot-nand.${UBOOT_EXT}"
+UBOOT_BINARY_colibri-imx6ull = "u-boot-nand.${UBOOT_EXT}"
+UBOOT_BINARY_tegra = "u-boot-dtb-tegra.${UBOOT_EXT}"
+UBOOT_BINARY_tegra124 = "u-boot-dtb-tegra.${UBOOT_EXT}"
+UBOOT_BINARY_tegra124m = "u-boot-dtb-tegra.${UBOOT_EXT}"
 
 #we need some native tools for deployment
+DEPENDS_append = " pbzip2-native"
 DEPENDS_append_mx6 = " imx-loader-native"
+DEPENDS_append_mx6ull = " mtd-utils-native imx-loader-native"
 DEPENDS_append_mx7 = " mtd-utils-native imx-loader-native"
 DEPENDS_append_tegra = " cbootimage-native tegrarcm-native"
 DEPENDS_append_tegra124 = " cbootimage-native tegrarcm-native"
@@ -48,6 +53,24 @@ imagedeploytools_append_mx6() {
     cp ${STAGING_ETCDIR_NATIVE}/imx-loader.d/mx6_usb_work.conf ${IMAGE_ROOT}/
 }
 
+imagedeploytools_append_mx6ull() {
+    IMAGE_ROOT="${IMAGE_ROOTFS}/../imx_flash/"
+    rm -f ${IMAGE_ROOT}/mkfs.ubifs  ${IMAGE_ROOT}/imx_usb
+    mkdir -p ${IMAGE_ROOT}
+
+    # add the mkfs.ubifs binary
+    cp ${STAGING_DIR_NATIVE}/usr/sbin/mkfs.ubifs ${IMAGE_ROOT}/
+    ${BUILD_STRIP} ${IMAGE_ROOT}/mkfs.ubifs
+
+    # add imx-loader and its configuration files
+    cp ${STAGING_BINDIR_NATIVE}/imx_usb ${IMAGE_ROOT}/
+    ${BUILD_STRIP} ${IMAGE_ROOT}/imx_usb
+
+# FIXME
+    cp ${STAGING_ETCDIR_NATIVE}/imx-loader.d/imx_usb.conf ${IMAGE_ROOT}/
+    cp ${STAGING_ETCDIR_NATIVE}/imx-loader.d/mx7_usb_work.conf ${IMAGE_ROOT}/
+}
+
 imagedeploytools_append_mx7() {
     IMAGE_ROOT="${IMAGE_ROOTFS}/../imx_flash/"
     rm -f ${IMAGE_ROOT}/mkfs.ubifs  ${IMAGE_ROOT}/imx_usb
@@ -62,6 +85,7 @@ imagedeploytools_append_mx7() {
     ${BUILD_STRIP} ${IMAGE_ROOT}/imx_usb
     cp ${STAGING_ETCDIR_NATIVE}/imx-loader.d/imx_usb.conf ${IMAGE_ROOT}/
     cp ${STAGING_ETCDIR_NATIVE}/imx-loader.d/mx7_usb_work.conf ${IMAGE_ROOT}/
+    cp ${IMAGE_ROOTFS}/../${MACHINE}_bin/${UBOOT_BINARY} ${IMAGE_ROOTFS}/../${MACHINE}_bin/u-boot.imx
 }
 
 imagedeploytools_append_tegra() {
@@ -145,13 +169,8 @@ fakeroot imagedeploy_arm() {
     then
         cp -P ${DEPLOY_DIR_IMAGE}/SPL* ${IMAGE_ROOTFS}/../${MACHINE}_bin/
     fi
-    rm -f ${IMAGE_ROOTFS}/../${MACHINE}_bin/u-boot-hsmmc-${MACHINE}.${U_BOOT_EXT}
-    mv ${IMAGE_ROOTFS}/../${MACHINE}_bin/${U_BOOT_SYMLINK} ${IMAGE_ROOTFS}/../${MACHINE}_bin/${U_BOOT_BINARY}
-
-    # add the rootfs version to the welcome banner
-    echo -n "${IMAGE_NAME} ${PV}" >> ${IMAGE_ROOTFS}/etc/issue
-    echo " ${TDX_VERDATE}" | sed 's/-//' >> ${IMAGE_ROOTFS}/etc/issue
-    echo "" >> ${IMAGE_ROOTFS}/etc/issue
+    rm -f ${IMAGE_ROOTFS}/../${MACHINE}_bin/u-boot-hsmmc-${MACHINE}.${UBOOT_EXT}
+    mv ${IMAGE_ROOTFS}/../${MACHINE}_bin/${UBOOT_SYMLINK} ${IMAGE_ROOTFS}/../${MACHINE}_bin/${UBOOT_BINARY}
 
     # add additional tools if required
     imagedeploytools
@@ -160,13 +179,17 @@ fakeroot imagedeploy_arm() {
     rm -f ${IMAGE_DIR}/rootfs.lock
 
     #create tarball
-    tar -cjf ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}_${TDX_VER_EXT}.tar.bz2 ${IMAGE_DIR}
+    # ignore return code 1 "file changed as we read it" as other tasks(e.g. do_image_wic) may be hardlinking rootfs
+    tar --use-compress-prog=pbzip2 -cf ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}_${TDX_VER_EXT}.tar.bz2 ${IMAGE_DIR} || true
 }
 
 fakeroot do_imagedeploy() {
-    imagedeploy
+    if [ -e ${BURNFLASH} ]
+    then
+        imagedeploy
+    fi
 }
-addtask imagedeploy after do_rootfs before do_image_complete
+addtask imagedeploy after do_image before do_image_complete
 
 # make sure to rerun do_rootfs before do_imagedeploy is executed
 do_imagedeploy[vardep] = "do_rootfs"
