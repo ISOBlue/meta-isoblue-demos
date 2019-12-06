@@ -58,7 +58,6 @@ IMAGE_INSTALL += " \
     python-avro \
     python-gps3 \
     \
-    oracle-jse-jdk-arm32-vfp-hflt \
 "
 
 require recipes-images/images/tdx-extra.inc
