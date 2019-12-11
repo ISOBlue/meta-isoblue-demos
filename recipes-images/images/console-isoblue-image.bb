@@ -41,7 +41,6 @@ IMAGE_INSTALL += " \
     \
     isoblue-software \
     isoblue-misc \
-    kafka-bin \
     gpsd \
     vim \
     chrony \
@@ -52,10 +51,6 @@ IMAGE_INSTALL += " \
     libedit \
     libmbim \
     libqmi \
-    librdkafka \
-    avro-c \
-    python-kafka \
-    python-avro \
     python-gps3 \
     \
 "
