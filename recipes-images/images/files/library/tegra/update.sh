@@ -70,7 +70,7 @@ BOOT_DEVICE=nand
 EMMC_PARTS="mbr.bin boot.vfat" 
 # no devicetree by default
 KERNEL_DEVICETREE=""
-KERNEL_IMAGETYPE="uImage"
+KERNEL_IMAGETYPE="zImage"
 MIN_PARTITION_FREE_SIZE=300
 MODTYPE_DETECT=0
 
@@ -200,7 +200,7 @@ case "$MODTYPE" in
 		# assumed minimal eMMC size [in sectors of 512]
 		EMMC_SIZE=$(expr 1024 \* 7450 \* 2)
 		IMAGEFILE=root.ext3
-		KERNEL_DEVICETREE="tegra30-apalis-eval.dtb"
+		KERNEL_DEVICETREE="%kernel_device_trees%"
 		LOCPATH="tegra-uboot-flasher"
 		OUT_DIR="$OUT_DIR/apalis_t30"
 		U_BOOT_BINARY=u-boot-dtb-tegra.bin
@@ -212,7 +212,7 @@ case "$MODTYPE" in
 		# assumed minimal eMMC size [in sectors of 512]
 		EMMC_SIZE=$(expr 1024 \* 15020 \* 2)
 		IMAGEFILE=root.ext4
-		KERNEL_DEVICETREE="tegra124-apalis-eval.dtb tegra124-apalis-v1.2-eval.dtb"
+		KERNEL_DEVICETREE="%kernel_device_trees%"
 		LOCPATH="tegra-uboot-flasher"
 		OUT_DIR="$OUT_DIR/apalis-tk1"
 		U_BOOT_BINARY=u-boot-dtb-tegra.bin
@@ -223,7 +223,7 @@ case "$MODTYPE" in
 		CBOOT_IMAGE_TARGET=tegra20
 		EMMC_PARTS=""
 		IMAGEFILE=ubifs
-		KERNEL_DEVICETREE="tegra20-colibri-eval-v3.dtb"
+		KERNEL_DEVICETREE="%kernel_device_trees%"
 		KERNEL_IMAGETYPE="zImage"
 		LOCPATH="tegra-uboot-flasher"
 		OUT_DIR="$OUT_DIR/colibri_t20"
@@ -238,7 +238,7 @@ case "$MODTYPE" in
 		CBOOT_IMAGE_TARGET=tegra30
 		EMMC_SIZE=$(expr 1024 \* 3640 \* 2)
 		IMAGEFILE=root.ext3
-		KERNEL_DEVICETREE="tegra30-colibri-eval-v3.dtb"
+		KERNEL_DEVICETREE="%kernel_device_trees%"
 		LOCPATH="tegra-uboot-flasher"
 		OUT_DIR="$OUT_DIR/colibri_t30"
 		U_BOOT_BINARY=u-boot-dtb-tegra.bin

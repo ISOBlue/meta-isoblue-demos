@@ -2,13 +2,14 @@
 
 include conf/tdx_version.conf
 
-PV = "${TDX_VER_EXT_MIN}"
+PV = "${TDX_VER_PACKAGE_MIN}"
 BURNFLASH := "${THISDIR}/files/${MACHINE}"
-IMAGE_DIR = "${IMAGE_NAME}_${TDX_VER_INT}"
+IMAGE_DIR = "${IMAGE_NAME}_${TDX_VER_ITEM}"
 IMAGE_ROOTFS = "${WORKDIR}/${IMAGE_DIR}/rootfs"
 
 UBOOT_EXT = "bin"
-UBOOT_EXT_mx6 = "imx"
+UBOOT_EXT_mx6 = "img"
+UBOOT_EXT_colibri-imx6ull = "imx"
 UBOOT_EXT_mx7 = "imx"
 UBOOT_EXT_vf = "imx"
 UBOOT_SYMLINK = "u-boot-${MACHINE}.${UBOOT_EXT}"
@@ -50,7 +51,7 @@ imagedeploytools_append_mx6() {
     cp ${STAGING_BINDIR_NATIVE}/imx_usb ${IMAGE_ROOT}/
     ${BUILD_STRIP} ${IMAGE_ROOT}/imx_usb
     cp ${STAGING_ETCDIR_NATIVE}/imx-loader.d/imx_usb.conf ${IMAGE_ROOT}/
-    cp ${STAGING_ETCDIR_NATIVE}/imx-loader.d/mx6_usb_work.conf ${IMAGE_ROOT}/
+    cp ${STAGING_ETCDIR_NATIVE}/imx-loader.d/mx6_usb_*.conf ${IMAGE_ROOT}/
 }
 
 imagedeploytools_append_mx6ull() {
@@ -68,7 +69,7 @@ imagedeploytools_append_mx6ull() {
 
 # FIXME
     cp ${STAGING_ETCDIR_NATIVE}/imx-loader.d/imx_usb.conf ${IMAGE_ROOT}/
-    cp ${STAGING_ETCDIR_NATIVE}/imx-loader.d/mx7_usb_work.conf ${IMAGE_ROOT}/
+    cp ${STAGING_ETCDIR_NATIVE}/imx-loader.d/mx7_usb_*.conf ${IMAGE_ROOT}/
 }
 
 imagedeploytools_append_mx7() {
@@ -84,7 +85,7 @@ imagedeploytools_append_mx7() {
     cp ${STAGING_BINDIR_NATIVE}/imx_usb ${IMAGE_ROOT}/
     ${BUILD_STRIP} ${IMAGE_ROOT}/imx_usb
     cp ${STAGING_ETCDIR_NATIVE}/imx-loader.d/imx_usb.conf ${IMAGE_ROOT}/
-    cp ${STAGING_ETCDIR_NATIVE}/imx-loader.d/mx7_usb_work.conf ${IMAGE_ROOT}/
+    cp ${STAGING_ETCDIR_NATIVE}/imx-loader.d/mx7_usb_*.conf ${IMAGE_ROOT}/
     cp ${IMAGE_ROOTFS}/../${MACHINE}_bin/${UBOOT_BINARY} ${IMAGE_ROOTFS}/../${MACHINE}_bin/u-boot.imx
 }
 
@@ -140,7 +141,7 @@ imagedeploytools_append_vf() {
     # add imx-loader and its configuration files
     cp ${STAGING_BINDIR_NATIVE}/imx_uart ${IMAGE_ROOT}/
     ${BUILD_STRIP} ${IMAGE_ROOT}/imx_uart*
-    cp ${STAGING_ETCDIR_NATIVE}/imx-loader.d/vybrid_usb_work.conf ${IMAGE_ROOT}/
+    cp ${STAGING_ETCDIR_NATIVE}/imx-loader.d/vybrid_usb_*.conf ${IMAGE_ROOT}/
 }
 
 imagedeploy_kernel() {
@@ -157,6 +158,8 @@ fakeroot imagedeploy() {
 fakeroot imagedeploy_arm() {
     cd ${WORKDIR}
     cp -Lr ${BURNFLASH}/* ${IMAGE_DIR}/
+
+    sed -i 's/%kernel_device_trees%/${KERNEL_DEVICETREE}/' ${IMAGE_DIR}/update.sh
 
     cd ${IMAGE_DIR}/${MACHINE}_bin
     ./mk-u-boot-scripts.sh
@@ -180,7 +183,7 @@ fakeroot imagedeploy_arm() {
 
     #create tarball
     # ignore return code 1 "file changed as we read it" as other tasks(e.g. do_image_wic) may be hardlinking rootfs
-    tar --use-compress-prog=pbzip2 -cf ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}_${TDX_VER_EXT}.tar.bz2 ${IMAGE_DIR} || true
+    tar --use-compress-prog=pbzip2 --numeric-owner -cf ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}_${TDX_VER_PACKAGE}.tar.bz2 ${IMAGE_DIR} || true
 }
 
 fakeroot do_imagedeploy() {

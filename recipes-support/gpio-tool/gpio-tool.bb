@@ -28,6 +28,7 @@ do_install() {
     install -d ${D}/${bindir}
     install -d ${D}/${datadir}/applications
     install -d ${D}/${datadir}/pixmaps
+<<<<<<< HEAD
     install -m 755 ${WORKDIR}/gpio-tool ${D}/${bindir}/
     install -m 644 ${WORKDIR}/gpio-tool.desktop ${D}/${datadir}/applications/
     install -m 644 ${WORKDIR}/gpio-tool.png ${D}/${datadir}/pixmaps/
@@ -41,3 +42,15 @@ pkg_postinst_${PN}() {
 pkg_postrm_${PN}() {
     rm -f ${base_prefix}/home/Desktop/gpio-tool.desktop
 }
+=======
+    install -d ${D}/home/root/Desktop
+    install -m 755 ${WORKDIR}/gpio-tool ${D}/${bindir}/
+    install -m 644 ${WORKDIR}/gpio-tool.desktop ${D}/${datadir}/applications/
+    install -m 644 ${WORKDIR}/gpio-tool.png ${D}/${datadir}/pixmaps/
+    ln -s ${datadir}/applications/gpio-tool.desktop ${D}/home/root/Desktop/
+}
+
+FILES_${PN} += " \
+    /home/root/Desktop \
+"
+>>>>>>> Apalis-iMX6_LXDE-Image_2.8b6.184-20190401

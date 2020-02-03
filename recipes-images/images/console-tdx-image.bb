@@ -1,4 +1,6 @@
 SUMMARY = "Toradex Embedded Linux Console Demo"
+SUMMARY_append_apalis-tk1-mainline = " (Mainline)"
+DESCRIPTION = "Angstrom-based image without graphical interface"
 
 LICENSE = "MIT"
 
@@ -28,10 +30,9 @@ IMAGE_LINGUAS = "en-us"
 #ROOTFS_POSTPROCESS_COMMAND += 'install_linguas; '
 
 DISTRO_UPDATE_ALTERNATIVES ??= ""
-ROOTFS_PKGMANAGE_PKGS ?= '${@base_conditional("ONLINE_PACKAGE_MANAGEMENT", "none", "", "${ROOTFS_PKGMANAGE} ${DISTRO_UPDATE_ALTERNATIVES}", d)}'
+ROOTFS_PKGMANAGE_PKGS ?= '${@oe.utils.conditional("ONLINE_PACKAGE_MANAGEMENT", "none", "", "${ROOTFS_PKGMANAGE} ${DISTRO_UPDATE_ALTERNATIVES}", d)}'
 
-CONMANPKGS ?= "connman connman-systemd connman-plugin-loopback connman-plugin-ethernet connman-plugin-wifi connman-client"
-CONMANPKGS_libc-uclibc = ""
+CONMANPKGS ?= "connman connman-plugin-loopback connman-plugin-ethernet connman-plugin-wifi connman-client"
 
 #don't install some id databases
 #BAD_RECOMMENDATIONS_append_colibri-vf += " udev-hwdb cpufrequtils "
@@ -59,4 +60,4 @@ IMAGE_INIT_MANAGER  = "systemd"
 IMAGE_INITSCRIPTS   = " "
 IMAGE_LOGIN_MANAGER = "busybox shadow"
 
-inherit image
+inherit core-image

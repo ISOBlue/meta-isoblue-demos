@@ -1,8 +1,11 @@
 SUMMARY = "Toradex Embedded Linux Qt5 Demo With X11"
+SUMMARY_append_apalis-tk1-mainline = " (Mainline)"
+DESCRIPTION = "Angstrom-based image with the Qt5 Framework and the X11 server"
 
-# after the boot systemd starts X and then a qt5 application
-# check recipes-qt/qt5/qt5-x11-free-systemd.bb for the systemd service
-# responsible for this
+# after the boot systemd starts X and then a qt5 application, check
+# recipes-graphics/x-window-simple-app/x-window-simple-app and
+# https://developer.toradex.com/knowledge-base/how-to-autorun-application-at-the-start-up-in-linux#X11_with_One_User_Application
+# for how this is done.
 
 LICENSE = "MIT"
 
@@ -34,12 +37,9 @@ IMAGE_LINGUAS = "en-us"
 #ROOTFS_POSTPROCESS_COMMAND += 'install_linguas; '
 
 DISTRO_UPDATE_ALTERNATIVES ??= ""
-ROOTFS_PKGMANAGE_PKGS ?= '${@base_conditional("ONLINE_PACKAGE_MANAGEMENT", "none", "", "${ROOTFS_PKGMANAGE} ${DISTRO_UPDATE_ALTERNATIVES}", d)}'
+ROOTFS_PKGMANAGE_PKGS ?= '${@oe.utils.conditional("ONLINE_PACKAGE_MANAGEMENT", "none", "", "${ROOTFS_PKGMANAGE} ${DISTRO_UPDATE_ALTERNATIVES}", d)}'
 
-CONMANPKGS ?= "connman connman-systemd connman-plugin-loopback connman-plugin-ethernet connman-plugin-wifi connman-client"
-CONMANPKGS_libc-uclibc = ""
-
-DEPENDS += "gst-plugins-good gst-plugins-bad gst-plugins-ugly"
+CONMANPKGS ?= "connman connman-plugin-loopback connman-plugin-ethernet connman-plugin-wifi connman-client"
 
 #deploy the OpenGL ES headers to the sysroot
 DEPENDS_append_tegra = " nvsamples"
@@ -60,7 +60,6 @@ GSTREAMER = " \
     gstreamer1.0-plugins-base-audioresample \
     gstreamer1.0-plugins-base-audiotestsrc \
     gstreamer1.0-plugins-base-typefindfunctions \
-    gstreamer1.0-plugins-base-ivorbisdec \
     gstreamer1.0-plugins-base-ogg \
     gstreamer1.0-plugins-base-theora \
     gstreamer1.0-plugins-base-videotestsrc \
@@ -72,6 +71,7 @@ GSTREAMER = " \
     gstreamer1.0-plugins-good-id3demux \
     gstreamer1.0-plugins-good-isomp4 \
     gstreamer1.0-plugins-good-matroska \
+    gstreamer1.0-plugins-good-multifile \
     gstreamer1.0-plugins-good-rtp \
     gstreamer1.0-plugins-good-rtpmanager \
     gstreamer1.0-plugins-good-udp \
@@ -89,16 +89,12 @@ GSTREAMER = " \
 GSTREAMER_MX6QDL = " \
     gstreamer1.0-plugins-base-ximagesink \
     gstreamer1.0-plugins-imx \
-    imx-gst1.0-plugin \
-    imx-gst1.0-plugin-gplay \
-    imx-gst1.0-plugin-grecorder \
 "
 GSTREAMER_append_mx6q = "${GSTREAMER_MX6QDL}"
 GSTREAMER_append_mx6dl = "${GSTREAMER_MX6QDL}"
 
 GSTREAMER_append_mx7 = " \
     gstreamer1.0-plugins-base-ximagesink \
-    imx-gst1.0-plugin \
 "
 # No longer available
 #    gst-plugins-gl \
@@ -185,7 +181,7 @@ IMAGE_INSTALL_QT5 = " \
     packagegroup-qt5 \
     liberation-fonts \
     qtsmarthome \
-    qt5-x11-free-systemd \
+    x-window-simple-app \
 "
 
 IMAGE_INSTALL_append_tegra = " \
@@ -207,7 +203,7 @@ IMAGE_INSTALL_append_tegra124m = " \
 "
 IMAGE_INSTALL_MX6QDL = " \
     packagegroup-fsl-gpu-libs \
-    libopencl-mx6 \
+    libopencl-imx \
     eglinfo-x11 \
 "
 IMAGE_INSTALL_append_mx6q = "${IMAGE_INSTALL_MX6QDL}"
@@ -242,6 +238,8 @@ IMAGE_INSTALL += " \
     xhost \
     xset \
     setxkbmap \
+    \
+    xserver-nodm-init \
     \
     xrdb \
     xorg-minimal-fonts xserver-xorg-utils \

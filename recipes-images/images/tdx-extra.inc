@@ -1,13 +1,10 @@
-#additional packages to include in our ISOBlue images
+#additional packages to include in our Toradex images
 
 # Copy Licenses to image /usr/share/common-licenses, on vybrid for flash size reasons only the manifest
 COPY_LIC_MANIFEST ?= "1"
 #Bug with several MACHINES build, license files for all arch packages stored wrongly
 COPY_LIC_DIRS ?= "0"
 COPY_LIC_DIRS_colibri-vf = "0"
-
-#the following builds cross gdb and gdbserver
-DEPENDS += "gdb-cross-${TARGET_ARCH}"
 
 add_rootfs_version () {
     echo -n "${IMAGE_NAME} ${PV}" >> ${IMAGE_ROOTFS}/etc/issue
@@ -40,6 +37,7 @@ IMAGE_INSTALL_append_tegra3 = " \
     e2fsprogs-resize2fs \
     e2fsprogs-tune2fs \
     nv-conf-systemd \
+    perf \
 "
 
 IMAGE_INSTALL_append_tegra124 = " \
@@ -59,6 +57,7 @@ IMAGE_INSTALL_append_tegra124 = " \
     tegrastats \
     u-boot-toradex-fw-utils \
     usb-rndis-systemd \
+    perf \
 "
 IMAGE_INSTALL_append_tegra124m = " \
     aspell \
@@ -76,6 +75,7 @@ IMAGE_INSTALL_append_tegra124m = " \
     pciutils \
     ptpd \
     u-boot-toradex-fw-utils \
+    perf \
 "
 
 IMAGE_INSTALL_append_apalis-t30 = " \
@@ -96,6 +96,7 @@ IMAGE_INSTALL_append_colibri-t20 = " \
 IMAGE_INSTALL-MX6QDL = " \
     bmode-usb \
     libusbgx \
+    libusbgx-examples \
     linuxptp \
     gpio-export \
     curl \
@@ -116,14 +117,16 @@ IMAGE_INSTALL_append_mx6dl = "${IMAGE_INSTALL-MX6QDL}"
 
 IMAGE_INSTALL_append_apalis-imx6 = " \
     u-boot-toradex-fsl-fw-utils \
+    perf \
 "
 IMAGE_INSTALL_append_colibri-imx6 = " \
     u-boot-toradex-fsl-fw-utils \
+    perf \
 "
 
 IMAGE_INSTALL_append_mx6ull = " \
-    bmode-usb \
     libusbgx \
+    libusbgx-examples \
     linuxptp \
     ptpd \
     mtd-utils-ubifs \
@@ -138,6 +141,7 @@ IMAGE_INSTALL_append_apalis-imx6 = " \
 IMAGE_INSTALL_append_vf = " \
     linuxptp \
     libusbgx \
+    libusbgx-examples \
     ptpd \
     mtd-utils-ubifs \
     kernel-modules \
@@ -151,6 +155,7 @@ IMAGE_INSTALL_append_colibri-vf = " \
 IMAGE_INSTALL_append_mx7 = " \
     linuxptp \
     libusbgx \
+    libusbgx-examples \
     file \
     aspell \
     ptpd \
@@ -158,6 +163,7 @@ IMAGE_INSTALL_append_mx7 = " \
 
 IMAGE_INSTALL_append_colibri-imx7-emmc = " \
     u-boot-toradex-fsl-fw-utils \
+    perf \
 "
 
 IMAGE_INSTALL_append_colibri-imx7 = " \
@@ -165,12 +171,17 @@ IMAGE_INSTALL_append_colibri-imx7 = " \
     mtd-utils-ubifs \
 "
 
+IMAGE_INSTALL_append_colibri-imx6ull = " \
+    u-boot-toradex-fsl-fw-utils \
+    mtd-utils-ubifs \
+    bluez-alsa \
+    mwifiexap \
+"
+
 IMAGE_INSTALL += " \
     packagegroup-dotnet-deps \
     \
-    crda \
-    linux-firmware-ralink \
-    linux-firmware-rtl8192cu \
+    wireless-regdb-static \
     \
     alsa-utils \
     alsa-utils-aplay \
@@ -178,6 +189,7 @@ IMAGE_INSTALL += " \
     \
     sqlite3 \
     \
+    ${BACKPORTS_WIFI} \
     curl \
     canutils \
     nfs-utils-client \
@@ -196,77 +208,65 @@ IMAGE_INSTALL += " \
     util-linux-fstrim \
     \
     devmem2 \
+    ethtool \
     evtest \
     hdparm \
-    iperf \
     iperf3 \
     i2c-tools \
+    libsoc \
+    lmbench \
     memtester \
     mmc-utils-cos \
+    nbench-byte \
     rt-tests \
     stress \
-    lmbench \
-    nbench-byte \
     tinymembench \
-    ethtool \
+    util-linux-lsblk \
     \
     tdx-oak-sensors \
 "
+
 #Backports
-BACKPORTS_APALIS = " \
+
+BACKPORTS_WIFI = " \
     backports \
     linux-firmware-ath10k    \
+    linux-firmware-sd8686    \
+    linux-firmware-sd8688    \
+    linux-firmware-sd8787    \
+    linux-firmware-sd8797    \
+    linux-firmware-sd8887    \
+    linux-firmware-sd8997    \
+    linux-firmware-ralink    \
+    linux-firmware-rtl8192cu \
+    linux-firmware-rtl8188eu \
+    hostapd \
+"
+BACKPORTS_WIFI_EXTRA = " \
     linux-firmware-ath9k     \
     linux-firmware-iwlwifi   \
-    linux-firmware-sd8686    \
-    linux-firmware-sd8688    \
-    linux-firmware-sd8787    \
-    linux-firmware-sd8797    \
-    linux-firmware-ralink    \
-    linux-firmware-rtl8192cu \
-    linux-firmware-rtl8188eu \
-"
-
-BACKPORTS_COLIBRI = " \
-    backports \
-    linux-firmware-ath10k    \
-    linux-firmware-sd8686    \
-    linux-firmware-sd8688    \
-    linux-firmware-sd8787    \
-    linux-firmware-sd8797    \
-    linux-firmware-ralink    \
-    linux-firmware-rtl8192cu \
-    linux-firmware-rtl8188eu \
 "
 
 IMAGE_INSTALL_append_apalis-tk1 = " \
-    ${BACKPORTS_APALIS} \
+     ${BACKPORTS_WIFI_EXTRA} \
+"
+
+IMAGE_INSTALL_append_apalis-tk1-mainline = " \
+     ${BACKPORTS_WIFI_EXTRA} \
+"
+
+IMAGE_INSTALL_remove_apalis-tk1-mainline = " \
+    backports \
+"
+
+IMAGE_INSTALL_remove_colibri-t20 = " \
+    linux-firmware-ath10k \
 "
 
 IMAGE_INSTALL_append_apalis-t30 = " \
-    ${BACKPORTS_APALIS} \
+    ${BACKPORTS_WIFI_EXTRA} \
 "
 
 IMAGE_INSTALL_append_apalis-imx6 = " \
-    ${BACKPORTS_APALIS} \
-"
-
-IMAGE_INSTALL_append_colibri-t30 = " \
-    ${BACKPORTS_COLIBRI} \
-"
-
-IMAGE_INSTALL_append_colibri-t20 = " \
-    ${BACKPORTS_COLIBRI} \
-"
-
-IMAGE_INSTALL_append_colibri-imx6 = " \
-    ${BACKPORTS_COLIBRI} \
-"
-
-IMAGE_INSTALL_append_colibri-imx7 = " \
-    ${BACKPORTS_COLIBRI} \
-"
-
-IMAGE_INSTALL_append_colibri-vf = " \
-    ${BACKPORTS_COLIBRI} \
+    ${BACKPORTS_WIFI_EXTRA} \
 "

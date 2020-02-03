@@ -1,4 +1,6 @@
 SUMMARY = "Toradex Embedded Linux Demo with LXDE"
+SUMMARY_append_apalis-tk1-mainline = " (Mainline)"
+DESCRIPTION = "Angstrom-based image with the LXDE desktop environment"
 
 LICENSE = "MIT"
 
@@ -28,15 +30,9 @@ IMAGE_LINGUAS = "en-us"
 #ROOTFS_POSTPROCESS_COMMAND += 'install_linguas; '
 
 DISTRO_UPDATE_ALTERNATIVES ??= ""
-ROOTFS_PKGMANAGE_PKGS ?= '${@base_conditional("ONLINE_PACKAGE_MANAGEMENT", "none", "", "${ROOTFS_PKGMANAGE} ${DISTRO_UPDATE_ALTERNATIVES}", d)}'
+ROOTFS_PKGMANAGE_PKGS ?= '${@oe.utils.conditional("ONLINE_PACKAGE_MANAGEMENT", "none", "", "${ROOTFS_PKGMANAGE} ${DISTRO_UPDATE_ALTERNATIVES}", d)}'
 
 CONMANPKGS ?= "connman connman-client connman-gnome"
-CONMANPKGS_libc-uclibc = ""
-
-DEPENDS_append_tegra = " gst-plugins-good gst-plugins-bad gst-plugins-ugly"
-#do not build plugins-ugly because it would require to whitelist LICENCES without deploying them
-DEPENDS += "gstreamer1.0-plugins-good gstreamer1.0-plugins-bad"
-DEPENDS_remove_tegra = "gstreamer1.0-plugins-good gstreamer1.0-plugins-bad"
 
 #deploy the OpenGL ES headers to the sysroot
 DEPENDS_append_tegra = " nvsamples"
@@ -48,9 +44,6 @@ IMAGE_BROWSER_colibri-vf = ""
 
 # don't install some packages bloating the vybrid image
 BAD_RECOMMENDATIONS_append_colibri-vf = " udev-hwdb cpufrequtils"
-
-# don't install a second icon theme
-BAD_RECOMMENDATIONS_append = " adwaita-icon-theme adwaita-icon-theme-symbolic"
 
 # this would pull in a large amount of gst-plugins, we only add a selected few
 #    gstreamer1.0-plugins-base-meta
@@ -65,7 +58,6 @@ GSTREAMER = " \
     gstreamer1.0-plugins-base-audioresample \
     gstreamer1.0-plugins-base-audiotestsrc \
     gstreamer1.0-plugins-base-typefindfunctions \
-    gstreamer1.0-plugins-base-ivorbisdec \
     gstreamer1.0-plugins-base-ogg \
     gstreamer1.0-plugins-base-theora \
     gstreamer1.0-plugins-base-videotestsrc \
@@ -77,6 +69,7 @@ GSTREAMER = " \
     gstreamer1.0-plugins-good-id3demux \
     gstreamer1.0-plugins-good-isomp4 \
     gstreamer1.0-plugins-good-matroska \
+    gstreamer1.0-plugins-good-multifile \
     gstreamer1.0-plugins-good-rtp \
     gstreamer1.0-plugins-good-rtpmanager \
     gstreamer1.0-plugins-good-udp \
@@ -100,6 +93,8 @@ GSTREAMER_MX6QDL = " \
 "
 GSTREAMER_append_mx6q = "${GSTREAMER_MX6QDL}"
 GSTREAMER_append_mx6dl = "${GSTREAMER_MX6QDL}"
+
+GSTREAMER_colibri-imx6ull = ""
 
 GSTREAMER_append_mx7 = " \
     gstreamer1.0-plugins-base-ximagesink \
@@ -195,7 +190,6 @@ IMAGE_INSTALL_append_tegra = " \
 "
 IMAGE_INSTALL_append_tegra3 = " \
     \
-    packagegroup-snapd \
 "
 IMAGE_INSTALL_append_tegra124 = " \
     gpio-tool \
@@ -207,7 +201,6 @@ IMAGE_INSTALL_append_tegra124 = " \
     tiff \
     xvinfo \
     \
-    packagegroup-snapd \
 "
 IMAGE_INSTALL_append_tegra124m = " \
     gpio-tool \
@@ -219,17 +212,15 @@ IMAGE_INSTALL_append_tegra124m = " \
     tiff \
     xvinfo \
     \
-    packagegroup-snapd \
 "
 IMAGE_INSTALL_MX6QDL = " \
     gpio-tool \
     packagegroup-fsl-gpu-libs \
-    libopencl-mx6 \
+    libopencl-imx \
     gnome-disk-utility \
     mime-support \
     eglinfo-x11 \
     \
-    packagegroup-snapd \
 "
 IMAGE_INSTALL_append_mx6q = "${IMAGE_INSTALL_MX6QDL}"
 IMAGE_INSTALL_append_mx6dl = "${IMAGE_INSTALL_MX6QDL}"
@@ -242,6 +233,10 @@ IMAGE_INSTALL_append_mx7 = " \
 IMAGE_INSTALL_append_vf = " \
     gpio-tool \
     xf86-video-modesetting \
+"
+
+IMAGE_INSTALL_append_colibri-imx6ull = " \
+    gpio-tool \
 "
 
 # Packages which might be empty or no longer available
