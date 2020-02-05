@@ -189,7 +189,6 @@ IMAGE_INSTALL += " \
     \
     sqlite3 \
     \
-    ${BACKPORTS_WIFI} \
     curl \
     canutils \
     nfs-utils-client \
@@ -264,9 +263,5 @@ IMAGE_INSTALL_remove_colibri-t20 = " \
 "
 
 IMAGE_INSTALL_append_apalis-t30 = " \
-    ${BACKPORTS_WIFI_EXTRA} \
-"
-
-IMAGE_INSTALL_append_apalis-imx6 = " \
     ${BACKPORTS_WIFI_EXTRA} \
 "

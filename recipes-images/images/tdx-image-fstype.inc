@@ -8,7 +8,7 @@ IMAGE_DIR = "${IMAGE_NAME}_${TDX_VER_ITEM}"
 IMAGE_ROOTFS = "${WORKDIR}/${IMAGE_DIR}/rootfs"
 
 UBOOT_EXT = "bin"
-UBOOT_EXT_mx6 = "img"
+UBOOT_EXT_mx6 = "imx"
 UBOOT_EXT_colibri-imx6ull = "imx"
 UBOOT_EXT_mx7 = "imx"
 UBOOT_EXT_vf = "imx"

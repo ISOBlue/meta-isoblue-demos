@@ -54,14 +54,14 @@ Usage()
 }
 
 # initialise options
-KERNEL_IMAGETYPE="zImage"
+KERNEL_IMAGETYPE="uImage"
 MIN_PARTITION_FREE_SIZE=100
 MODTYPE_DETECT=0
 OUT_DIR=""
 ROOTFSPATH=rootfs
 SPLIT=1
 UBOOT_RECOVERY=0
-U_BOOT_BINARY=u-boot.img
+U_BOOT_BINARY=u-boot.imx
 SPL_BINARY=SPL
 
 while getopts "dfhm:o:" Option ; do
@@ -245,7 +245,7 @@ ${PARTED} -a none -s ${BINARIES}/mbr.bin unit s mkpart primary fat32 ${BOOT_STAR
 # the partition spans to the end of the disk, even though the fs size will be smaller
 # on the target the fs is then grown to the full size
 ${PARTED} -a none -s ${BINARIES}/mbr.bin unit s mkpart primary ext4 ${ROOTFS_START} $(expr ${EMMC_SIZE} \- ${ROOTFS_START} \- 1)
-${PARTED} -s ${BINARIES}/mbr.bin unit s print 
+${PARTED} -s ${BINARIES}/mbr.bin unit s print
 # get the size of the VFAT partition
 BOOT_BLOCKS=$(LC_ALL=C ${PARTED} -s ${BINARIES}/mbr.bin unit b print \
 	| awk '/ 1 / { print int(substr($4, 1, length($4 -1)) / 1024) }')
@@ -257,7 +257,7 @@ truncate -s $IMG_SIZE ${BINARIES}/mbr.bin
 echo ""
 echo "Creating VFAT partition image with the kernel"
 rm -f ${BINARIES}/boot.vfat
-${MKFSVFAT} -n "${BOOTDD_VOLUME_ID}" -S 512 -C ${BINARIES}/boot.vfat $BOOT_BLOCKS 
+${MKFSVFAT} -n "${BOOTDD_VOLUME_ID}" -S 512 -C ${BINARIES}/boot.vfat $BOOT_BLOCKS
 export MTOOLS_SKIP_CHECK=1
 mcopy -i ${BINARIES}/boot.vfat -s ${BINARIES}/${KERNEL_IMAGETYPE} ::/${KERNEL_IMAGETYPE}
 
